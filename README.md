@@ -8,6 +8,8 @@
 
 El sistema de gestión de permisos de Stone_ERP permite asignar y gestionar permisos a usuarios y roles a nivel de entidad y registro individual. Este sistema está diseñado para manejar entidades como `Sucursal` y `Centro de Costos`, facilitando la administración de acceso a la información crítica dentro de la base de datos.  
 
+
+Para el correcto despliegue del proyecto se debe crear una base de datos llamada Stone_ERP, en la cual se debe desplegar las tablas que se encuentran en el archivo `scripts_para_crear_tablas.sql` en la carpeta del mismo nombre; adicionalmente se debe desplegar los procedimientos almacenados del archivo `scripts_procedimientos_almacenados.sql` y de carpeta del mismo nombre; lo anterior dando F5 a los script en SQL Server.
   
 
 ## Funcionalidades  
