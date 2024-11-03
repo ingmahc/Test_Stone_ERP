@@ -175,4 +175,102 @@ CREATE PROCEDURE [dbo].[RemoveUserPermission]
 
     @PermissionId BIGINT,  
 
-    @EntityCatalogId BIGINT 
+    @EntityCatalogId BIGINT
+
+
+
+## Datos utilizados para las pruebas:
+
+-- Datos de prueba para la tabla Company
+INSERT INTO [dbo].[Company] (compa_name, compa_tradename, compa_doctype, compa_docnum, compa_address, compa_city, compa_state, compa_country, compa_industry, compa_phone, compa_email, compa_website, compa_active)
+VALUES 
+('Tech Solutions', 'TechSol', 'NI', '123456789', '123 Tech St', 'Tech City', 'Tech State', 'Techland', 'Information Technology', '555-1234', 'info@techsol.com', 'www.techsol.com', 1),
+('Green Gardens', 'GreenG', 'NI', '987654321', '456 Garden Ave', 'Garden City', 'Garden State', 'Gardenland', 'Agriculture', '555-5678', 'info@greengardens.com', NULL, 1);
+
+-- Datos de prueba para la tabla BranchOffice
+INSERT INTO [dbo].[BranchOffice] (company_id, broff_name, broff_code, broff_address, broff_city, broff_state, broff_country, broff_phone, broff_email, broff_active)
+VALUES 
+(4, 'Tech Solutions HQ', 'TS-HQ', '789 Corporate Blvd', 'Tech City', 'Tech State', 'Techland', '555-0001', 'hq@techsol.com', 1),
+(5, 'Green Gardens North', 'GG-N', '321 North St', 'Garden City', 'Garden State', 'Gardenland', '555-1111', 'north@greengardens.com', 1);
+
+-- Datos de prueba para la tabla CostCenter
+INSERT INTO [dbo].[CostCenter] (company_id, cosce_parent_id, cosce_code, cosce_name, cosce_description, cosce_budget, cosce_level, cosce_active)
+VALUES 
+(4, NULL, 'CC-IT', 'IT Department', 'Handles all IT-related tasks', 100000.00, 1, 1),
+(4, NULL, 'CC-MKT', 'Marketing Department', 'Handles all marketing tasks', 50000.00, 1, 1),
+(5, NULL, 'CC-GRD', 'Garden Department', 'Handles garden operations', 75000.00, 1, 1);
+
+
+-- Datos de prueba para la tabla EntityCatalog
+INSERT INTO [dbo].[EntityCatalog] (entit_name, entit_descrip, entit_active, entit_config)
+VALUES 
+('Sucursal', 'Sucursal de la compañía', 1, NULL),
+('Centro de Costos', 'Centro de costos para la gestión de gastos', 1, NULL);
+
+
+
+-- Datos de prueba para la tabla PermiRole
+INSERT INTO [dbo].[PermiRole] (role_id, permission_id, entitycatalog_id, perol_include, perol_record)
+VALUES 
+(3, 1, 1, 1, NULL),  -- Rol Admin puede crear sucursales en la entidad Sucursal
+(3, 2, 1, 1, NULL),  -- Rol Admin puede leer sucursales en la entidad Sucursal
+(4, 2, 1, 1, NULL),  -- Rol User puede leer sucursales en la entidad Sucursal
+(4, 3, 1, 0, NULL),  -- Rol User no puede actualizar sucursales en la entidad Sucursal
+(4, 4, 2, 1, NULL);  -- Rol User puede leer centros de costos en la entidad Centro de Costos
+
+
+INSERT INTO PermiRoleRecord (role_id, permission_id, entitycatalog_id, perrc_record, perrc_include)
+VALUES 
+(3, 1, 1, 101, 1),  -- Rol Admin puede crear registro 101 en Sucursal (activo)
+(3, 2, 1, 102, 1),  -- Rol Admin puede leer registro 102 en Sucursal (activo)
+(4, 2, 1, 103, 1),  -- Rol User puede leer registro 103 en Sucursal (activo)
+(4, 3, 2, 201, 0),  -- Rol User no tiene permiso para actualizar registro 201 en Centro de Costos (inactivo)
+(4, 4, 2, 202, 1);  -- Rol User puede leer registro 202 en Centro de Costos (activo)
+
+-- Datos de prueba para la tabla User
+INSERT INTO [dbo].[User] (user_username, user_password, user_email, user_phone, user_is_admin, user_is_active)
+VALUES 
+('techadmin', 'securepassword', 'admin@techsol.com', '555-2222', 1, 1),
+('gardenuser', 'securepassword', 'user@greengardens.com', '555-3333', 0, 1);
+
+-- Datos de prueba para la tabla Role
+INSERT INTO [dbo].[Role] (company_id, role_name, role_code, role_description, role_active)
+VALUES 
+(4, 'Admin', 'ROLE-ADMIN', 'Administrator role with full access', 1),
+(5, 'User', 'ROLE-USER', 'User role with limited access', 1);
+
+-- Datos de prueba para la tabla Permission
+INSERT INTO [dbo].[Permission] (name, description, can_create, can_read, can_update, can_delete, can_import, can_export)
+VALUES 
+('Create Branch', 'Allows creating a new branch', 1, 0, 0, 0, 0, 0),
+('Read Branch', 'Allows reading branch details', 0, 1, 0, 0, 0, 0),
+('Update Branch', 'Allows updating branch information', 0, 0, 1, 0, 0, 0),
+('Delete Branch', 'Allows deleting a branch', 0, 0, 0, 1, 0, 0);
+
+-- Datos de prueba para la tabla PermiUser
+INSERT INTO [dbo].[PermiUser] (usercompany_id, permission_id, entitycatalog_id, peusr_include)
+VALUES 
+(4, 1, 1, 1),  -- Usuario en la compañía Tech Solutions tiene permiso para crear sucursales
+(4, 2, 1, 1),  -- Usuario en la compañía Tech Solutions tiene permiso para leer sucursales
+(5, 2, 1, 1),  -- Usuario en la compañía Green Gardens tiene permiso para leer sucursales
+(5, 4, 2, 1),  -- Usuario en la compañía Green Gardens tiene permiso para leer centros de costos
+(4, 3, 1, 0),  -- Usuario en la compañía Tech Solutions no tiene permiso para actualizar sucursales
+(4, 4, 2, 0);  -- Usuario en la compañía Tech Solutions no tiene permiso para eliminar centros de costos
+
+
+-- Datos de prueba para la tabla PermiUserRecord
+INSERT INTO [dbo].[PermiUserRecord] (usercompany_id, permission_id, entitycatalog_id, peusr_record, peusr_include)
+VALUES 
+(4, 1, 1, 101, 1),  -- Usuario de Tech Solutions puede crear la sucursal con registro 101
+(4, 2, 1, 102, 1),  -- Usuario de Tech Solutions puede leer la sucursal con registro 102
+(5, 2, 1, 103, 1),  -- Usuario de Green Gardens puede leer la sucursal con registro 103
+(5, 4, 2, 202, 1),  -- Usuario de Green Gardens puede leer el centro de costos con registro 202
+(4, 3, 1, 101, 0),  -- Usuario de Tech Solutions no tiene permiso para actualizar la sucursal con registro 101
+(4, 4, 2, 201, 0);  -- Usuario de Tech Solutions no tiene permiso para eliminar el centro de costos con registro 201
+
+
+-- Datos de prueba para la tabla UserCompany
+INSERT INTO [dbo].[UserCompany] (user_id, company_id, useco_active)
+VALUES 
+(1, 4, 1),
+(2, 5, 1);
