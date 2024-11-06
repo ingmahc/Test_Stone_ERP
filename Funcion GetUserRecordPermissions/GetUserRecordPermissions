@@ -1,0 +1,41 @@
+USE [Stone_ERP]
+GO
+
+/****** Object:  UserDefinedFunction [dbo].[GetUserPermissionsForCostCenter]    Script Date: 5/11/2024 9:27:03 p. m. ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [dbo].[GetUserPermissionsForCostCenter]
+(
+    @UserCompanyId BIGINT,
+    @EntityCatalogId BIGINT
+)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT 
+        C.*,
+        P.can_create,
+        P.can_read,
+        P.can_update,
+        P.can_delete,
+        P.can_import,
+        P.can_export
+    FROM 
+        CostCenter AS C
+    LEFT JOIN 
+        PermiUserRecord PUR ON C.id_cosce = PUR.peusr_record
+                             AND PUR.usercompany_id = @UserCompanyId
+                             AND PUR.entitycatalog_id = @EntityCatalogId
+    LEFT JOIN 
+        Permission P ON PUR.permission_id = P.id_permi
+    WHERE 
+        P.can_read = 1  -- Opcional: limita resultados a registros con permiso de lectura
+);
+GO
+
+
