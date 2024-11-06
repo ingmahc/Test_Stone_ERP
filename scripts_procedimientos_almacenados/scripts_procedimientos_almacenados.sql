@@ -1,10 +1,76 @@
 USE [Stone_ERP]
 GO
+/****** Object:  StoredProcedure [dbo].[GetConsolidatedPermissions]    Script Date: 5/11/2024 9:30:23 p. m. ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GetConsolidatedPermissions]
+    @UserCompanyId BIGINT,
+    @RoleId BIGINT,
+    @EntityCatalogId BIGINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Tabla temporal para consolidar resultados
+    CREATE TABLE #Permissions (
+        id_permi BIGINT,
+        name NVARCHAR(255),
+        description NVARCHAR(MAX),
+        can_create BIT,
+        can_read BIT,
+        can_update BIT,
+        can_delete BIT,
+        can_import BIT,
+        can_export BIT
+    );
+
+    -- Obtener permisos a nivel de rol en la entidad
+    INSERT INTO #Permissions
+    SELECT P.*
+    FROM Permission P
+    JOIN PermiRole PR ON P.id_permi = PR.permission_id
+    WHERE PR.role_id = @RoleId
+      AND PR.entitycatalog_id = @EntityCatalogId;
+
+    -- Obtener permisos de registro específicos del rol
+    INSERT INTO #Permissions
+    SELECT P.*
+    FROM Permission P
+    JOIN PermiRoleRecord PRR ON P.id_permi = PRR.permission_id
+    WHERE PRR.role_id = @RoleId
+      AND PRR.entitycatalog_id = @EntityCatalogId;
+
+    -- Obtener permisos a nivel de usuario en la entidad
+    INSERT INTO #Permissions
+    SELECT P.*
+    FROM Permission P
+    JOIN PermiUser PU ON P.id_permi = PU.permission_id
+    WHERE PU.usercompany_id = @UserCompanyId
+      AND PU.entitycatalog_id = @EntityCatalogId;
+
+    -- Seleccionar los permisos consolidados, eliminando duplicados
+    SELECT DISTINCT *
+    FROM #Permissions;
+
+    -- Limpiar la tabla temporal
+    DROP TABLE #Permissions;
+END;
+GO
+
+
+
+
+	
 /****** Object:  StoredProcedure [dbo].[AssignRolePermission]    Script Date: 3/11/2024 1:54:19 p. m. ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 CREATE PROCEDURE [dbo].[AssignRolePermission]
     @RoleId BIGINT,
     @PermissionId BIGINT,
